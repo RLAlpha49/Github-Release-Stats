@@ -1,103 +1,201 @@
-import Image from "next/image";
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { Repo, Release } from "@/types/github";
+import { fetchUserRepos, fetchReleases } from "@/services/github-api";
+import { formatNumber, formatDate, formatBytes } from "@/utils/formatters";
+import { sumDownloads, avgDaysBetweenReleases } from "@/utils/release-stats";
+import { Header } from "@/components/Header";
+import { SearchForm } from "@/components/SearchForm";
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { LoadingIndicator } from "@/components/LoadingIndicator";
+import { RepositorySelector } from "@/components/RepositorySelector";
+import { StatCard } from "@/components/StatCard";
+import { ReleaseChart } from "@/components/ReleaseChart";
+import { Table } from "@/components/Table";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [username, setUsername] = useState("");
+  const [repos, setRepos] = useState<Repo[] | null>(null);
+  const [repoError, setRepoError] = useState<string | null>(null);
+  const [loadingRepos, setLoadingRepos] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+  const [selectedRepo, setSelectedRepo] = useState<string>("");
+  const [releases, setReleases] = useState<Release[] | null>(null);
+  const [relError, setRelError] = useState<string | null>(null);
+  const [loadingReleases, setLoadingReleases] = useState(false);
+
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+
+  const owner = username.trim();
+
+  const toggleExpanded = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  async function handleSearch(e?: React.FormEvent) {
+    e?.preventDefault();
+    setRepos(null);
+    setSelectedRepo("");
+    setReleases(null);
+    setRepoError(null);
+    setRelError(null);
+    if (!owner) return;
+    try {
+      setLoadingRepos(true);
+      const data = await fetchUserRepos(owner);
+      setRepos(data.sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setRepoError(msg || "Failed to fetch repositories");
+    } finally {
+      setLoadingRepos(false);
+    }
+  }
+
+  useEffect(() => {
+    async function go() {
+      if (!owner || !selectedRepo) return;
+      setReleases(null);
+      setRelError(null);
+      try {
+        setLoadingReleases(true);
+        const data = await fetchReleases(owner, selectedRepo);
+        setReleases(data);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setRelError(msg || "Failed to fetch releases");
+      } finally {
+        setLoadingReleases(false);
+      }
+    }
+    go();
+  }, [owner, selectedRepo]);
+
+  const computed = useMemo(() => {
+    if (!releases) return null;
+    const totalReleases = releases.length;
+    const totalDownloads = sumDownloads(releases);
+    const latest = releases[0];
+    const stableCount = releases.filter(r => !r.prerelease).length;
+    const preCount = totalReleases - stableCount;
+    const avgGap = avgDaysBetweenReleases(releases);
+    const topAsset = releases
+      .flatMap(r => r.assets)
+      .sort((a, b) => (b.download_count || 0) - (a.download_count || 0))[0];
+    const releasesData = releases
+      .map(r => ({
+        date: r.published_at ? new Date(r.published_at) : undefined,
+        tag: r.tag_name,
+        downloads: r.assets.reduce((a, as) => a + (as.download_count || 0), 0),
+      }))
+      .filter(d => d.date)
+      .sort((a, b) => (a.date as Date).getTime() - (b.date as Date).getTime())
+      .map(d => ({
+        dateLabel: new Intl.DateTimeFormat(undefined, {
+          month: "short",
+          day: "2-digit",
+          year: "2-digit",
+        }).format(d.date as Date),
+        tag: d.tag,
+        downloads: d.downloads,
+      }));
+
+    return {
+      totalReleases,
+      totalDownloads,
+      latest,
+      stableCount,
+      preCount,
+      avgGap,
+      topAsset,
+      releasesData,
+    };
+  }, [releases]);
+
+  return (
+    <div className="min-h-[95.2vh] bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-50 dark:from-slate-950 dark:via-neutral-950 dark:to-violet-950 text-gray-900 dark:text-neutral-100 transition-colors duration-150 flex flex-col">
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-32 -right-24 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl dark:bg-blue-400/10 transition-colors duration-150" />
+        <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl dark:bg-violet-400/10 transition-colors duration-150" />
+        <div className="absolute inset-x-0 top-0 mx-auto h-[420px] w-[820px] rounded-full opacity-60 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-200/40 via-transparent to-transparent dark:from-blue-500/10 transition-colors duration-150" />
+      </div>
+
+      <div className="mx-auto max-w-5xl p-6 sm:p-10 flex-1">
+        <Header />
+
+        <SearchForm
+          username={username}
+          setUsername={setUsername}
+          handleSearch={handleSearch}
+          loadingRepos={loadingRepos}
+        />
+
+        {repoError && <ErrorMessage message={repoError} />}
+
+        {repos && (
+          <RepositorySelector
+            repos={repos}
+            selectedRepo={selectedRepo}
+            setSelectedRepo={setSelectedRepo}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        )}
+
+        {loadingReleases && <LoadingIndicator />}
+
+        {relError && <ErrorMessage message={relError} />}
+
+        {releases && computed && (
+          <section className="mt-8 space-y-6 animate-in fade-in scale-in duration-500 delay-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <StatCard title="Total releases" value={formatNumber(computed.totalReleases)} />
+              <StatCard title="Total downloads" value={formatNumber(computed.totalDownloads)} />
+              <StatCard
+                title="Stable / Pre"
+                value={`${formatNumber(computed.stableCount)} / ${formatNumber(computed.preCount)}`}
+              />
+              <StatCard
+                title="Latest tag"
+                value={computed.latest?.tag_name || "-"}
+                subtitle={formatDate(computed.latest?.published_at)}
+              />
+              <StatCard
+                title="Avg days between releases"
+                value={computed.avgGap ? computed.avgGap.toFixed(1) : "-"}
+              />
+              <StatCard
+                title="Top asset"
+                value={computed.topAsset?.name || "-"}
+                subtitle={
+                  computed.topAsset
+                    ? `${formatNumber(computed.topAsset.download_count)} downloads`
+                    : undefined
+                }
+              />
+            </div>
+
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-[900ms]">
+              <h2 className="text-lg font-medium mb-3 text-gray-900 dark:text-neutral-100">
+                Releases
+              </h2>
+
+              {computed.releasesData && computed.releasesData.length > 0 && (
+                <ReleaseChart data={computed.releasesData} />
+              )}
+
+              <Table
+                releases={releases}
+                expanded={expanded}
+                toggleExpanded={toggleExpanded}
+                formatDate={formatDate}
+                formatNumber={formatNumber}
+                formatBytes={formatBytes}
+              />
+            </div>
+          </section>
+        )}
+      </div>
+
+      <Footer />
     </div>
   );
 }
