@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { trackThemeToggle } from "@/utils/analytics";
 
 export default function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -27,10 +28,16 @@ export default function ThemeToggle() {
   const current = resolvedTheme || theme || "system";
   const isDark = current === "dark";
 
+  const handleThemeToggle = () => {
+    const newTheme = isDark ? "light" : "dark";
+    setTheme(newTheme);
+    trackThemeToggle(newTheme);
+  };
+
   return (
     <button
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={handleThemeToggle}
       className="relative rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-all duration-200 hover:scale-105 active:scale-95"
     >
       <div className="relative w-5 h-5">

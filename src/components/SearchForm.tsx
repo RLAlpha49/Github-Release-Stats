@@ -1,3 +1,5 @@
+import { trackSearch } from "@/utils/analytics";
+
 interface SearchFormProps {
   username: string;
   setUsername: (username: string) => void;
@@ -6,9 +8,20 @@ interface SearchFormProps {
 }
 
 export function SearchForm({ username, setUsername, handleSearch, loadingRepos }: SearchFormProps) {
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    // Track the search event
+    if (username.trim()) {
+      trackSearch(username.trim());
+    }
+
+    handleSearch(e);
+  };
+
   return (
     <form
-      onSubmit={handleSearch}
+      onSubmit={handleSubmit}
       className="flex flex-col sm:flex-row gap-3 animate-in fade-in slide-in-from-top-2 duration-500 delay-400"
     >
       <input

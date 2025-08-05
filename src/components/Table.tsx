@@ -2,6 +2,7 @@ import React from "react";
 import { Release } from "@/types/github";
 import { MiniStat } from "@/components/MiniStat";
 import { AssetChart } from "@/components/AssetChart";
+import { trackTableExpand } from "@/utils/analytics";
 
 interface ThProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
   children: React.ReactNode;
@@ -39,6 +40,8 @@ interface TableProps {
   formatDate: (date?: string | null) => string;
   formatNumber: (num: number) => string;
   formatBytes: (bytes?: number) => string;
+  owner?: string;
+  repo?: string;
 }
 
 export function Table({
@@ -48,7 +51,18 @@ export function Table({
   formatDate,
   formatNumber,
   formatBytes,
+  owner,
+  repo,
 }: TableProps) {
+  const handleToggleExpanded = (releaseId: number, releaseTag: string) => {
+    toggleExpanded(releaseId);
+
+    // Track expand event (only when expanding, not collapsing)
+    if (!expanded[releaseId] && owner && repo) {
+      trackTableExpand(owner, repo, releaseTag);
+    }
+  };
+
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-neutral-800/80 bg-white/90 dark:bg-neutral-950/40 backdrop-blur animate-in fade-in slide-in-from-bottom-1 duration-500 delay-[1100ms]">
       <table className="min-w-full text-sm">
@@ -77,7 +91,7 @@ export function Table({
                   <Td className="w-0">
                     <button
                       aria-label={isOpen ? "Collapse" : "Expand"}
-                      onClick={() => toggleExpanded(rel.id)}
+                      onClick={() => handleToggleExpanded(rel.id, rel.tag_name)}
                       className="rounded border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 px-2 py-1 text-xs hover:bg-gray-100 dark:hover:bg-neutral-900 transition-all duration-200 hover:scale-110 active:scale-95"
                     >
                       <span
@@ -174,7 +188,9 @@ export function Table({
                           </div>
                         </div>
 
-                        {rel.assets.length > 0 && <AssetChart assets={rel.assets} />}
+                        {rel.assets.length > 0 && (
+                          <AssetChart assets={rel.assets} owner={owner} repo={repo} />
+                        )}
 
                         <div className="overflow-x-auto rounded-md border border-gray-200 dark:border-neutral-800 animate-in fade-in slide-in-from-bottom-1 duration-400 delay-500">
                           <table className="min-w-full text-xs sm:text-sm">

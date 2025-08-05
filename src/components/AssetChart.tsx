@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { ReleaseAsset } from "@/types/github";
 import { formatNumber } from "@/utils/formatters";
+import { trackChartView } from "@/utils/analytics";
 import {
   ResponsiveContainer,
   BarChart,
@@ -12,9 +14,18 @@ import {
 
 interface AssetChartProps {
   assets: ReleaseAsset[];
+  owner?: string;
+  repo?: string;
 }
 
-export function AssetChart({ assets }: AssetChartProps) {
+export function AssetChart({ assets, owner, repo }: AssetChartProps) {
+  useEffect(() => {
+    // Track asset chart view when component is mounted and data is available
+    if (assets && assets.length > 0 && owner && repo) {
+      trackChartView("asset", owner, repo);
+    }
+  }, [assets, owner, repo]);
+
   if (!assets || assets.length === 0) return null;
 
   const chartData = assets.map(a => ({ name: a.name, downloads: a.download_count }));

@@ -5,6 +5,7 @@ import { Repo, Release } from "@/types/github";
 import { fetchUserRepos, fetchReleases } from "@/services/github-api";
 import { formatNumber, formatDate, formatBytes } from "@/utils/formatters";
 import { sumDownloads, avgDaysBetweenReleases } from "@/utils/release-stats";
+import { trackReleaseDataView } from "@/utils/analytics";
 import { Header } from "@/components/Header";
 import { SearchForm } from "@/components/SearchForm";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -61,6 +62,11 @@ export default function Home() {
         setLoadingReleases(true);
         const data = await fetchReleases(owner, selectedRepo);
         setReleases(data);
+
+        // Track release data view
+        if (data && data.length > 0) {
+          trackReleaseDataView(owner, selectedRepo, data.length);
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         setRelError(msg || "Failed to fetch releases");
@@ -137,6 +143,7 @@ export default function Home() {
             repos={repos}
             selectedRepo={selectedRepo}
             setSelectedRepo={setSelectedRepo}
+            owner={owner}
           />
         )}
 
@@ -179,7 +186,7 @@ export default function Home() {
               </h2>
 
               {computed.releasesData && computed.releasesData.length > 0 && (
-                <ReleaseChart data={computed.releasesData} />
+                <ReleaseChart data={computed.releasesData} owner={owner} repo={selectedRepo} />
               )}
 
               <Table
@@ -189,6 +196,8 @@ export default function Home() {
                 formatDate={formatDate}
                 formatNumber={formatNumber}
                 formatBytes={formatBytes}
+                owner={owner}
+                repo={selectedRepo}
               />
             </div>
           </section>

@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { ChartDataPoint } from "@/types/github";
 import { formatNumber } from "@/utils/formatters";
+import { trackChartView } from "@/utils/analytics";
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,9 +14,18 @@ import {
 
 interface ReleaseChartProps {
   data: ChartDataPoint[];
+  owner?: string;
+  repo?: string;
 }
 
-export function ReleaseChart({ data }: ReleaseChartProps) {
+export function ReleaseChart({ data, owner, repo }: ReleaseChartProps) {
+  useEffect(() => {
+    // Track chart view when component is mounted and data is available
+    if (data && data.length > 0 && owner && repo) {
+      trackChartView("release", owner, repo);
+    }
+  }, [data, owner, repo]);
+
   if (!data || data.length === 0) return null;
 
   return (
