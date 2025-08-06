@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /_next/
+Disallow: /*.json$
+
+Sitemap: https://github-release-stats.alpha49.com/sitemap.xml
+
+Crawl-delay: 1

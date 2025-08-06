@@ -16,8 +16,55 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GitHub Release Stats",
-  description: "Search repos and view GitHub release statistics",
+  title: {
+    default: "GitHub Release Stats - Analyze Repository Downloads & Release Data",
+    template: "%s | GitHub Release Stats",
+  },
+  description:
+    "Analyze GitHub repository release statistics, download counts, and asset performance. Track release patterns and discover trending repositories with detailed analytics.",
+  keywords: [
+    "GitHub",
+    "release statistics",
+    "repository analytics",
+    "download stats",
+    "GitHub API",
+    "open source",
+    "software releases",
+  ],
+  authors: [{ name: "RLAlpha49" }],
+  creator: "RLAlpha49",
+  publisher: "GitHub Release Stats",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "https://github-release-stats.vercel.app"
+  ),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    title: "GitHub Release Stats - Analyze Repository Downloads & Release Data",
+    description:
+      "Analyze GitHub repository release statistics, download counts, and asset performance. Track release patterns and discover trending repositories with detailed analytics.",
+    siteName: "GitHub Release Stats",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -26,6 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Footer() {
   return (
     <footer className="border-t border-gray-200 dark:border-neutral-800/70 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-[1200ms]">
@@ -11,11 +13,18 @@ export function Footer() {
           </div>
         </div>
         <nav className="flex items-center gap-4 text-sm animate-in slide-in-from-right duration-400 delay-[1400ms]">
+          <Link
+            href="/about"
+            className="hover:underline text-gray-900 dark:text-neutral-100 transition-all duration-200 hover:scale-110"
+          >
+            About
+          </Link>
           <a
             className="hover:underline text-blue-600 dark:text-blue-400 transition-all duration-200 hover:scale-110"
             href="https://github.com/RLAlpha49/Github-Release-Stats"
             target="_blank"
             rel="noreferrer"
+            aria-label="View source code on GitHub"
           >
             Repository
           </a>
@@ -27,6 +36,7 @@ export function Footer() {
             href="https://github.com/RLAlpha49"
             target="_blank"
             rel="noreferrer"
+            aria-label="Visit RLAlpha49's GitHub profile"
           >
             @RLAlpha49
           </a>

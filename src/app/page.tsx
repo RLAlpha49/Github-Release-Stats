@@ -6,6 +6,7 @@ import { fetchUserRepos, fetchReleases } from "@/services/github-api";
 import { formatNumber, formatDate, formatBytes } from "@/utils/formatters";
 import { sumDownloads, avgDaysBetweenReleases } from "@/utils/release-stats";
 import { trackReleaseDataView } from "@/utils/analytics";
+import { generateStructuredData, generateRepositoryMetadata } from "@/utils/metadata";
 import { Header } from "@/components/Header";
 import { SearchForm } from "@/components/SearchForm";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -15,6 +16,7 @@ import { StatCard } from "@/components/StatCard";
 import { ReleaseChart } from "@/components/ReleaseChart";
 import { Table } from "@/components/Table";
 import { Footer } from "@/components/Footer";
+import { StructuredData } from "@/components/StructuredData";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -30,8 +32,44 @@ export default function Home() {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
   const owner = username.trim();
+  const selectedRepoData = repos?.find(repo => repo.name === selectedRepo);
+  const structuredDataObject = generateStructuredData(
+    owner,
+    selectedRepoData,
+    releases || undefined
+  );
+
+  const dynamicMetadata = useMemo(() => {
+    if (!owner) {
+      return {
+        title: "GitHub Release Stats - Analyze Repository Downloads & Release Data",
+        description:
+          "Analyze GitHub repository release statistics, download counts, and asset performance. Track release patterns and discover trending repositories.",
+      };
+    }
+
+    const metadata = generateRepositoryMetadata(owner, selectedRepoData, releases || undefined);
+    return {
+      title: metadata.title,
+      description: metadata.description,
+    };
+  }, [owner, selectedRepoData, releases]);
 
   const toggleExpanded = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.title = String(dynamicMetadata.title || "GitHub Release Stats");
+
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute(
+          "content",
+          dynamicMetadata.description || "Analyze GitHub repository release statistics"
+        );
+      }
+    }
+  }, [dynamicMetadata.title, dynamicMetadata.description]);
 
   async function handleSearch(e?: React.FormEvent) {
     e?.preventDefault();
@@ -120,6 +158,7 @@ export default function Home() {
 
   return (
     <div className="min-h-[95.2vh] bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-50 dark:from-slate-950 dark:via-neutral-950 dark:to-violet-950 text-gray-900 dark:text-neutral-100 transition-colors duration-150 flex flex-col">
+      <StructuredData data={structuredDataObject} />
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-32 -right-24 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl dark:bg-blue-400/10 transition-colors duration-150" />
         <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl dark:bg-violet-400/10 transition-colors duration-150" />
