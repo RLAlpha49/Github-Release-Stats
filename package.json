@@ -12,13 +12,13 @@
     "update-deps": "ncu --reject tailwindcss -u"
   },
   "dependencies": {
-    "autoprefixer": "^10.5.0",
+    "autoprefixer": "^10.5.2",
     "next": "16.2.9",
     "next-themes": "^0.4.6",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.16",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "recharts": "^3.8.1",
+    "recharts": "^3.9.0",
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
@@ -30,8 +30,8 @@
     "eslint-config-next": "16.2.9",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
-    "npm-check-updates": "^22.2.7",
-    "prettier": "^3.8.4",
+    "npm-check-updates": "^22.2.9",
+    "prettier": "^3.9.1",
     "typescript": "^6"
   }
 }
