@@ -12,14 +12,14 @@
     "update-deps": "ncu --reject tailwindcss -u"
   },
   "dependencies": {
-    "autoprefixer": "^10.5.2",
+    "autoprefixer": "^10.5.4",
     "next": "16.2.10",
     "next-themes": "^0.4.6",
-    "postcss": "^8.5.18",
+    "postcss": "^8.5.20",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "recharts": "^3.9.2",
-    "tailwindcss": "^4.3.2"
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
