@@ -13,12 +13,12 @@
   },
   "dependencies": {
     "autoprefixer": "^10.5.4",
-    "next": "16.2.10",
+    "next": "16.2.12",
     "next-themes": "^0.4.6",
-    "postcss": "^8.5.20",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
-    "recharts": "^3.9.2",
+    "postcss": "^8.5.23",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "recharts": "^3.10.1",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
@@ -27,11 +27,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^10",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.2.12",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
-    "npm-check-updates": "^22.2.9",
-    "prettier": "^3.9.5",
+    "npm-check-updates": "^23.0.0",
+    "prettier": "^3.9.6",
     "typescript": "^7"
   }
 }
