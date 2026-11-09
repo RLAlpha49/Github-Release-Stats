@@ -13,13 +13,13 @@
   },
   "dependencies": {
     "autoprefixer": "^10.6.2",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "next-themes": "^0.4.6",
     "postcss": "^8.5.32",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "recharts": "^3.10.1",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,7 +27,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^10",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "npm-check-updates": "^23.1.1",
